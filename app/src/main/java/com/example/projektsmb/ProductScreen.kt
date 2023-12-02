@@ -1,5 +1,6 @@
 package com.example.projektsmb
 
+import android.content.Context
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -14,6 +15,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -27,6 +29,7 @@ import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import com.example.projektsmb.ui.theme.ProductEvent
 import com.example.projektsmb.ui.theme.ProductState
 import com.example.projektsmb.ui.theme.SortType
@@ -34,8 +37,10 @@ import com.example.projektsmb.ui.theme.SortType
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProductScreen (
+    context: Context,
     state:ProductState,
-    onEvent: (ProductEvent) -> Unit
+    onEvent: (ProductEvent) -> Unit,
+    navController: NavController
 ){
     Scaffold(
         floatingActionButton = {
@@ -49,7 +54,7 @@ fun ProductScreen (
     ) {
         padding ->
         if(state.isAddingProduct){
-            AddProductDialog(state = state, onEvent = onEvent)
+            AddProductDialog(context, state = state, onEvent = onEvent)
         }
         LazyColumn(contentPadding = padding, modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(16.dp)){
             item{
@@ -76,6 +81,11 @@ fun ProductScreen (
                 Row(modifier = Modifier.fillMaxWidth()){
                     Column(modifier = Modifier.weight(1f)) {
                         Text(text = "${product.name}    ${product.price}", fontSize = 20.sp)
+                    }
+                    IconButton(onClick = {
+                        navController.navigate("product_edit_screen/${product.productId}")
+                    }) {
+                        Icon(imageVector = Icons.Default.Edit, contentDescription = "Edit this product")
                     }
                     IconButton(onClick = { onEvent(ProductEvent.DeleteProduct(product))}) {
                         Icon(imageVector = Icons.Default.Delete, contentDescription = "Delete this product")

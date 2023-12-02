@@ -1,5 +1,8 @@
 package com.example.projektsmb
 
+import android.content.ComponentName
+import android.content.Context
+import android.content.Intent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,13 +15,14 @@ import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.example.projektsmb.ui.theme.ProductEvent
 import com.example.projektsmb.ui.theme.ProductState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddProductDialog (state:ProductState, onEvent: (ProductEvent) -> Unit, modifier: Modifier = Modifier){
+fun AddProductDialog (context: Context, state:ProductState, onEvent: (ProductEvent) -> Unit, modifier: Modifier = Modifier){
     AlertDialog(
         modifier = modifier,
         onDismissRequest = {
@@ -56,6 +60,16 @@ fun AddProductDialog (state:ProductState, onEvent: (ProductEvent) -> Unit, modif
             ) {
                 Button(onClick = {
                     onEvent(ProductEvent.SaveProduct)
+                    context.sendBroadcast(
+                        Intent().also{
+                            it.component = ComponentName(
+                                "com.example.projektsmb",
+                                "com.example.projektsmb.ProductReceiver"
+                            )
+                            it.putExtra("newProduct", state.name)
+                        }
+                    )
+
                 }) {
                     Text(text = "Dodaj produkt")
                 }

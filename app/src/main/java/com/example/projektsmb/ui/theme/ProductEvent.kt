@@ -14,4 +14,5 @@ sealed interface ProductEvent{
     data class SortProduct(val sortType:SortType): ProductEvent
     data class DeleteProduct(val product: Product):ProductEvent
 
+    data class EditProduct(val product: Product):ProductEvent
 }

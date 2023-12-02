@@ -1,10 +1,17 @@
 package com.example.projektsmb
 
+import android.Manifest
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.content.Intent
+import android.content.IntentFilter
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
-import android.view.View
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -16,9 +23,11 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.app.ActivityCompat
-import androidx.core.app.ActivityCompat.recreate
+import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.NavType
@@ -28,8 +37,11 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.room.Room
 import com.example.projektsmb.ui.theme.ProjektSMBTheme
+import com.example.service.MyBackgroundServic
 
 class MainActivity : ComponentActivity() {
+
+    private val productReceiver = ProductReceiver()
 
     private val db by lazy {
         Room.databaseBuilder(applicationContext, AppDatabase::class.java, "app_databany.db").build()
@@ -53,12 +65,35 @@ class MainActivity : ComponentActivity() {
             }
         }
     )
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        createChannel()
+        startBackgroundService()
         setContent {
             ProjektSMBTheme {
-
                 val navController = rememberNavController()
+                val context = LocalContext.current
+                println("PERMISSION")
+                val hasPermission = NotificationManagerCompat.from(context).areNotificationsEnabled()
+                println("Notification Permission Status: $hasPermission")
+                val notificationPermission = Manifest.permission.POST_NOTIFICATIONS
+
+                if (ContextCompat.checkSelfPermission(
+                        this,
+                        notificationPermission
+                    ) != PackageManager.PERMISSION_GRANTED
+                ) {
+                    // Permission is not granted, request it
+                    ActivityCompat.requestPermissions(
+                        this,
+                        arrayOf(notificationPermission),
+                        1001 // You need to define this constant
+                    )
+                } else {
+                    // Permission has already been granted
+                    println("Notification Permission Status: true")
+                }
 
                 val state by viewModel.state.collectAsState()
                 val stateShopingCart by viewModelCartWithProducts.state.collectAsState()
@@ -95,7 +130,7 @@ class MainActivity : ComponentActivity() {
                         }
                     }
                     composable("product_screen") {
-                        ProductScreen(state = state, onEvent = viewModel::onEvent)
+                        ProductScreen(context, state = state, onEvent = viewModel::onEvent, navController)
                     }
                     composable("shoping_list_screen") {
                         ShopingCartScreen(state = stateShopingCart, viewModel=viewModelCartWithProducts,onEvent = viewModelCartWithProducts::onEvent, onBackClicked = {
@@ -122,10 +157,43 @@ class MainActivity : ComponentActivity() {
                             }, cartProductCrossRefDao = db.cartProdCrossRef,cartId.toString()
                         )
                     }
+                    composable(
+                        "product_edit_screen/{productId}",
+                        arguments = listOf(navArgument("productId") { type = NavType.StringType })
+                    ) { backStackEntry ->
+                        val productId = backStackEntry.arguments?.getString("productId") ?: ""
+                        val product = state.products.find { it.productId.toString() == productId }
+                        if (product != null) {
+                            EditProductDialog(context = context, product = product, onEvent = viewModel::onEvent, navController)
+                        }
+                    }
                 }
 
             }
         }
+    }
+    override fun onStart() {
+        super.onStart()
+        registerReceiver(productReceiver, IntentFilter())
+    }
+    override fun onDestroy() {
+        super.onDestroy()
+        unregisterReceiver(productReceiver)
+    }
+    private fun startBackgroundService() {
+        val serviceIntent = Intent(this, MyBackgroundServic::class.java)
+        startService(serviceIntent)
+    }
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun createChannel(){
+        val channel = NotificationChannel(
+            getString(R.string.newProductChannel),
+            "Channel for product notifications",
+            NotificationManager.IMPORTANCE_DEFAULT
+        )
+
+        NotificationManagerCompat.from(applicationContext)
+            .createNotificationChannel(channel)
     }
 }
 

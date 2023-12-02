@@ -42,6 +42,11 @@ class ProductViewModel(private val dao: ProductDao): ViewModel() {
                     dao.deleteProduct(event.product)
                 }
             }
+            is ProductEvent.EditProduct ->{
+                viewModelScope.launch {
+                    dao.upsertProduct(event.product)
+                }
+            }
             ProductEvent.HideDialog -> {
                 _state.update { it.copy(
                     isAddingProduct = false
