@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "483428927958",
+    "firebase_url": "https://smbproject-b3906-default-rtdb.europe-west1.firebasedatabase.app",
+    "project_id": "smbproject-b3906",
+    "storage_bucket": "smbproject-b3906.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:483428927958:android:db48a3f9d0d2fe66eafc77",
+        "android_client_info": {
+          "package_name": "smb1_proj.ect"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCL1SVYAgd561I9xS-imaDgR2371e60eUs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
