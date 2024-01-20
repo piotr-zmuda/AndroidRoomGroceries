@@ -1,10 +1,7 @@
 package com.example.projektsmb
 
 import android.Manifest
-import android.app.Activity
-import android.content.Context
 import android.content.pm.PackageManager
-import android.location.Location
 import android.os.Bundle
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -24,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.app.ActivityCompat
 import androidx.navigation.NavController
+import com.google.android.gms.location.Geofence
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
@@ -156,7 +154,6 @@ fun MapPage(navController: NavController) {
                                 println("Latitude: $latitude, Longitude: $longitude, Altitude: $altitude, Bearing: $bearing, Speed: $speed")
 
 
-
                                 val database = FirebaseDatabase.getInstance().reference.child("shops")
                                 val listener = object : ValueEventListener {
                                     override fun onDataChange(snapshot: DataSnapshot) {
@@ -167,6 +164,8 @@ fun MapPage(navController: NavController) {
                                                 .setTitle(cartSnapshot.child("name").value.toString())
 
                                             mapboxMap.addMarker(marker)
+                                            /*val geofence = createGeofence(cartSnapshot.key!!, cartSnapshot.child("lat").value.toString().toDouble(), cartSnapshot.child("longLat").value.toString().toDouble(), 100f)
+                                            registerGeofence(geofence)*/
                                         }
 
                                     }
@@ -190,15 +189,13 @@ fun MapPage(navController: NavController) {
 
 
 }
-private fun requestLocationPermission(activity: Context) {
-    val permission = Manifest.permission.ACCESS_FINE_LOCATION
-    if (ActivityCompat.shouldShowRequestPermissionRationale(activity as Activity, permission)) {
-        // Show an explanation to the user why the permission is needed
-        // (optional, depending on your use case)
-    } else {
-        // No explanation needed, request the permission
-        ActivityCompat.requestPermissions(activity, arrayOf(permission), REQUEST_LOCATION_PERMISSION)
-    }
+private fun createGeofence(markerId: String, latitude: Double, longitude: Double, radius: Float): Geofence {
+    return Geofence.Builder()
+        .setRequestId(markerId)
+        .setCircularRegion(latitude, longitude, radius)
+        .setExpirationDuration(Geofence.NEVER_EXPIRE)
+        .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER)
+        .build()
 }
 
 private const val REQUEST_LOCATION_PERMISSION = 123

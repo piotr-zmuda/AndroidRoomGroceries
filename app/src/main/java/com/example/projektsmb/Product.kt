@@ -8,5 +8,5 @@ data class Product(
     var name:String,
     var price:Double,
     @PrimaryKey(autoGenerate = true)
-    val productId:Long=0
+    var productId:Long=0
 )
